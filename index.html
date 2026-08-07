@@ -1,9 +1,9 @@
-      <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cute Reminder 🌸</title>
+  <title>Cute Reminder & Activity Tracker 🌸</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -14,6 +14,10 @@
       --accent: #E2F0CB;
       --text-color: #6C5B7B;
       --shadow: 0 8px 15px rgba(255, 183, 178, 0.2);
+      
+      --green-ttd: #B5EAD7;
+      --yellow-ttd: #FFDAC1;
+      --red-ttd: #FF9AA2;
     }
 
     * {
@@ -26,7 +30,7 @@
     body {
       background-color: var(--bg-color);
       color: var(--text-color);
-      padding: 20px;
+      padding: 20px 20px 90px 20px;
       max-width: 500px;
       margin: 0 auto;
     }
@@ -37,23 +41,70 @@
     }
 
     header h1 {
-      font-size: 24px;
-      color: #C7CEEA;
+      font-size: 22px;
+      color: #907AD6;
       text-shadow: 1px 1px 2px #B5EAD7;
     }
 
-    .form-card {
+    .page { display: none; }
+    .page.active {
+      display: block;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 500px;
+      background: #FFFFFF;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -4px 15px rgba(108, 91, 123, 0.1);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      z-index: 1000;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: #B5B2C5;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .nav-item span { font-size: 20px; margin-bottom: 2px; }
+
+    .nav-item.active {
+      color: #6C5B7B;
+      font-weight: 700;
+      transform: translateY(-2px);
+    }
+
+    .card-box {
       background: var(--card-bg);
       padding: 20px;
       border-radius: 24px;
       box-shadow: var(--shadow);
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       border: 2px solid #FFDAC1;
     }
 
-    .form-group {
-      margin-bottom: 12px;
-    }
+    .form-group { margin-bottom: 12px; }
 
     label {
       font-size: 14px;
@@ -73,9 +124,7 @@
       font-size: 14px;
     }
 
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
-    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
 
     .btn {
       width: 100%;
@@ -91,9 +140,7 @@
       box-shadow: var(--shadow);
     }
 
-    .btn:hover {
-      background: var(--primary-hover);
-    }
+    .btn:hover { background: var(--primary-hover); }
 
     .reminder-list {
       display: flex;
@@ -112,19 +159,11 @@
       border-left: 6px solid var(--primary);
     }
 
-    .card.prayer {
-      border-left-color: #B5EAD7;
-    }
+    .card.prayer { border-left-color: #B5EAD7; }
+    .card.ttd-card { border-left-color: #C7CEEA; }
 
-    .card-info h3 {
-      font-size: 16px;
-      margin-bottom: 4px;
-    }
-
-    .card-info p {
-      font-size: 12px;
-      opacity: 0.8;
-    }
+    .card-info h3 { font-size: 16px; margin-bottom: 4px; }
+    .card-info p { font-size: 12px; opacity: 0.8; }
 
     .actions button {
       background: none;
@@ -134,94 +173,358 @@
       margin-left: 8px;
     }
 
-    .hidden {
-      display: none;
+    /* KALENDER GRID */
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
     }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      text-align: center;
+    }
+
+    .day-name {
+      font-weight: bold;
+      font-size: 12px;
+      color: #907AD6;
+      padding-bottom: 6px;
+    }
+
+    .day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: #FAF8F5;
+      font-size: 13px;
+      font-weight: 600;
+      position: relative;
+      cursor: pointer;
+      border: 1px solid #E2F0CB;
+    }
+
+    .day-cell.empty {
+      background: transparent;
+      border: none;
+      cursor: default;
+    }
+
+    .day-cell.ttd-green { background-color: var(--green-ttd) !important; color: #2D6A4F; }
+    .day-cell.ttd-yellow { background-color: var(--yellow-ttd) !important; color: #D97706; }
+    .day-cell.ttd-red { background-color: var(--red-ttd) !important; color: #FFFFFF; }
+
+    .event-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #907AD6;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 4px;
+    }
+
+    .day-cell.today { border: 2px solid #6C5B7B; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: #FAF8F5;
+      padding: 15px;
+      border-radius: 16px;
+      border: 2px solid #E2F0CB;
+      text-align: center;
+    }
+
+    .stat-card h4 { font-size: 12px; opacity: 0.8; }
+    .stat-card p { font-size: 22px; font-weight: bold; color: #6C5B7B; margin-top: 4px; }
+
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Catatan Pengingat 🎀</h1>
+    <h1 id="page-title">Beranda 🌸</h1>
   </header>
 
-  <!-- FORM CRUD -->
-  <div class="form-card">
-    <input type="hidden" id="reminder-id">
-    
-    <div class="form-group">
-      <label>Kategori</label>
-      <select id="type" onchange="toggleFormFields()">
-        <option value="calendar">📅 Kalender & Catatan</option>
-        <option value="prayer">☪️ Jadwal Sholat</option>
-      </select>
+  <!-- HALAMAN 1: HOME -->
+  <div id="page-home" class="page active">
+    <div class="card-box">
+      <h3>Halo, Selamat Datang! ✨</h3>
+      <p style="font-size: 13px; margin-top: 6px; opacity: 0.9;">
+        Kelola jadwal harian, ulang tahun, dan pantau konsumsi Tablet Tambah Darah (TTD) kamu!
+      </p>
     </div>
 
-    <div class="form-group">
-      <label>Judul Catatan / Pengingat</label>
-      <input type="text" id="title" placeholder="Contoh: Minum TTD 💊 / Beli Skincare 🛍️">
+    <div class="card-box" style="border-color: #B5EAD7;">
+      <h3>Status TTD Minggu Ini 💊</h3>
+      <div id="home-ttd-status" style="margin-top: 10px;"></div>
+      <button class="btn" style="margin-top: 12px; background: #B5EAD7; color: #2D6A4F;" onclick="switchPage('ttd')">
+        Buka Kalender 📅
+      </button>
     </div>
 
-    <!-- Field khusus Kalender -->
-    <div id="calendar-fields">
-      <div class="form-group">
-        <label>Mode Pengulangan</label>
-        <select id="repeat-mode" onchange="toggleDateField()">
-          <option value="once">1 Kali Saja (Tanggal Tertentu)</option>
-          <option value="daily">Berulang Setiap Hari (Tiap Hari)</option>
-        </select>
-      </div>
-
-      <div class="form-group" id="date-group">
-        <label>Tanggal Target</label>
-        <input type="date" id="date">
-      </div>
+    <div class="card-box">
+      <h3>Jadwal Mendatang ⏰</h3>
+      <div id="home-upcoming" class="reminder-list" style="margin-top: 10px;"></div>
     </div>
-
-    <!-- Field khusus Sholat -->
-    <div id="prayer-fields" class="hidden">
-      <div class="form-group">
-        <label>Pilih Waktu Sholat</label>
-        <select id="prayer-name">
-          <option value="Subuh">Subuh</option>
-          <option value="Dzuhur">Dzuhur</option>
-          <option value="Ashar">Ashar</option>
-          <option value="Maghrib">Maghrib</option>
-          <option value="Isya">Isya</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>Jam Pengingat</label>
-      <input type="time" id="time">
-    </div>
-
-    <div class="form-group">
-      <label>Catatan Tambahan</label>
-      <textarea id="note" rows="2" placeholder="Detail catatan..."></textarea>
-    </div>
-
-    <button class="btn" onclick="saveReminder()">Simpan 🌸</button>
   </div>
 
-  <!-- LIST DAFTAR REMINDER -->
-  <div class="reminder-list" id="reminder-container"></div>
+  <!-- HALAMAN 2: INPUT JADWAL -->
+  <div id="page-form" class="page">
+    <div class="card-box">
+      <input type="hidden" id="reminder-id">
+      
+      <div class="form-group">
+        <label>Kategori</label>
+        <select id="type" onchange="toggleFormFields()">
+          <option value="calendar">📅 Catatan / Acara / Ulang Tahun</option>
+          <option value="prayer">☪️ Jadwal Sholat</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Judul Catatan / Acara</label>
+        <input type="text" id="title" placeholder="Contoh: Ultah Bu Guru 🎂 / Minum TTD 💊">
+      </div>
+
+      <div class="form-group" style="display:flex; align-items:center; gap:8px; background:#FAF8F5; padding:10px; border-radius:12px; border:1px dashed #B5EAD7;">
+        <input type="checkbox" id="is-ttd" style="width:auto;">
+        <label for="is-ttd" style="margin:0; font-size:13px; cursor:pointer;">Ini adalah Minum TTD 💊 (Masuk Analisis)</label>
+      </div>
+
+      <div id="calendar-fields" style="margin-top:12px;">
+        <div class="form-group">
+          <label>Mode Pengulangan</label>
+          <select id="repeat-mode" onchange="toggleDateField()">
+            <option value="once">1 Kali Saja (Tanggal Tertentu)</option>
+            <option value="daily">Setiap Hari</option>
+            <option value="weekly">Setiap Minggu (Hari yang Sama)</option>
+            <option value="monthly">Setiap Bulan (Tanggal yang Sama)</option>
+            <option value="yearly">Setiap Tahun (Khusus Ultah / Acara Tahunan 🎂)</option>
+            <option value="custom">Kustom (Per-beberapa Hari)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="date-group">
+          <label>Tanggal Mulai / Target</label>
+          <input type="date" id="date">
+        </div>
+
+        <div class="form-group hidden" id="custom-days-group">
+          <label>Ulangi Setiap Berapa Hari?</label>
+          <input type="number" id="custom-days" placeholder="Contoh: 3 (Setiap 3 hari sekali)" min="1">
+        </div>
+      </div>
+
+      <div id="prayer-fields" class="hidden" style="margin-top:12px;">
+        <div class="form-group">
+          <label>Pilih Waktu Sholat</label>
+          <select id="prayer-name">
+            <option value="Subuh">Subuh</option>
+            <option value="Dzuhur">Dzuhur</option>
+            <option value="Ashar">Ashar</option>
+            <option value="Maghrib">Maghrib</option>
+            <option value="Isya">Isya</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Jam Pengingat (Alarm/Notifikasi)</label>
+        <input type="time" id="time">
+      </div>
+
+      <div class="form-group">
+        <label>Catatan Tambahan</label>
+        <textarea id="note" rows="2" placeholder="Catatan opsional..."></textarea>
+      </div>
+
+      <button class="btn" onclick="saveReminder()">Simpan Jadwal 🌸</button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 3: LIST JADWAL -->
+  <div id="page-list" class="page">
+    <div class="reminder-list" id="reminder-container"></div>
+  </div>
+
+  <!-- HALAMAN 4: KALENDER INTERAKTIF -->
+  <div id="page-ttd" class="page">
+    <div class="card-box">
+      <div class="calendar-header">
+        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="changeMonth(-1)">⬅️</button>
+        <h3 id="month-year-label">Agustus 2026</h3>
+        <button style="background:none; border:none; font-size:18px; cursor:pointer;" onclick="changeMonth(1)">➡️</button>
+      </div>
+
+      <div class="calendar-grid" id="calendar-grid"></div>
+
+      <div style="margin-top:15px; font-size:12px; opacity:0.8; text-align:center;">
+        💡 <b>Tips:</b> Klik tanggal berapa saja untuk melihat atau menambahkan acara di tanggal tersebut!
+      </div>
+    </div>
+  </div>
+
+  <!-- HALAMAN 5: ANALISIS -->
+  <div id="page-analysis" class="page">
+    <div class="card-box">
+      <h3>Pengaturan Hari TTD ⚙️</h3>
+      <div class="form-group" style="margin-top: 10px;">
+        <label>Pilih Hari Rutin Minum TTD Kamu:</label>
+        <select id="target-day-select" onchange="updateTargetDay(this.value)">
+          <option value="0">Minggu</option>
+          <option value="1">Senin</option>
+          <option value="2">Selasa</option>
+          <option value="3">Rabu</option>
+          <option value="4">Kamis</option>
+          <option value="5">Jumat</option>
+          <option value="6">Sabtu</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card-box">
+      <h3>Laporan & Analisis TTD 📊</h3>
+      <p style="font-size: 12px; opacity: 0.8; margin-bottom: 15px;">Statistik kepatuhan minum Tablet Tambah Darah kamu.</p>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <h4>Kepatuhan</h4>
+          <p id="stat-compliance">0%</p>
+        </div>
+        <div class="stat-card">
+          <h4>Total Minum</h4>
+          <p id="stat-total">0 Kali</p>
+        </div>
+        <div class="stat-card">
+          <h4>Sesuai Hari</h4>
+          <p id="stat-target-day">0 Kali</p>
+        </div>
+        <div class="stat-card">
+          <h4>Terlewat</h4>
+          <p id="stat-missed">0 Kali</p>
+        </div>
+      </div>
+
+      <div id="analysis-feedback" style="padding: 12px; border-radius: 12px; font-size: 13px; text-align: center;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL JADWAL PER TANGGAL -->
+  <div id="date-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3 id="modal-date-title" style="margin-bottom:10px;">Jadwal Tanggal</h3>
+      <div id="modal-event-list" class="reminder-list" style="margin-bottom:15px;"></div>
+      <button class="btn" onclick="addNewEventForDate()" style="margin-bottom:8px;">+ Tambah Kegiatan di Tanggal Ini</button>
+      <button class="btn" style="background:#CCC; color:#333;" onclick="closeModal()">Tutup</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV BAR -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchPage('home')">
+      <span>🏠</span>Home
+    </button>
+    <button class="nav-item" onclick="switchPage('form')">
+      <span>📝</span>Input
+    </button>
+    <button class="nav-item" onclick="switchPage('list')">
+      <span>📋</span>Jadwal
+    </button>
+    <button class="nav-item" onclick="switchPage('ttd')">
+      <span>📅</span>Kalender
+    </button>
+    <button class="nav-item" onclick="switchPage('analysis')">
+      <span>📊</span>Analisis
+    </button>
+  </nav>
 
   <script>
     let reminders = JSON.parse(localStorage.getItem('my_reminders')) || [];
+    let ttdTargetDay = parseInt(localStorage.getItem('ttd_target_day')) || 2; // Default: 2 (Selasa)
+    let selectedDateForModal = '';
 
-    // Register Service Worker
+    let currentDate = new Date();
+    let viewYear = currentDate.getFullYear();
+    let viewMonth = currentDate.getMonth();
+
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(() => {
-        console.log('Service Worker Registered');
-      }).catch(err => console.log('SW error:', err));
+      navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
     }
 
-    // Minta Izin Notifikasi
     function requestNotificationPermission() {
       if ('Notification' in window && Notification.permission !== 'granted') {
         Notification.requestPermission();
+      }
+    }
+
+    function updateTargetDay(val) {
+      ttdTargetDay = parseInt(val);
+      localStorage.setItem('ttd_target_day', ttdTargetDay);
+      renderCalendar();
+      renderAnalysis();
+      renderHomePage();
+    }
+
+    function switchPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      const targetPage = document.getElementById(`page-${pageId}`);
+      if (targetPage) targetPage.classList.add('active');
+
+      const titles = {
+        home: 'Beranda 🌸',
+        form: 'Tambah Pengingat 📝',
+        list: 'Daftar Jadwal 📋',
+        ttd: 'Kalender & Kegiatan 📅',
+        analysis: 'Analisis TTD 📊'
+      };
+      document.getElementById('page-title').innerText = titles[pageId] || 'Cute Reminder';
+
+      const navButtons = document.querySelectorAll('.nav-item');
+      const pageIndex = ['home', 'form', 'list', 'ttd', 'analysis'].indexOf(pageId);
+      if (pageIndex !== -1 && navButtons[pageIndex]) navButtons[pageIndex].classList.add('active');
+
+      if (pageId === 'home') renderHomePage();
+      if (pageId === 'list') renderReminders();
+      if (pageId === 'ttd') renderCalendar();
+      if (pageId === 'analysis') {
+        document.getElementById('target-day-select').value = ttdTargetDay;
+        renderAnalysis();
       }
     }
 
@@ -238,17 +541,40 @@
 
     function toggleDateField() {
       const mode = document.getElementById('repeat-mode').value;
-      const dateGroup = document.getElementById('date-group');
-      if (mode === 'daily') {
-        dateGroup.classList.add('hidden');
+      const customDaysGroup = document.getElementById('custom-days-group');
+      
+      if (mode === 'custom') {
+        customDaysGroup.classList.remove('hidden');
       } else {
-        dateGroup.classList.remove('hidden');
+        customDaysGroup.classList.add('hidden');
       }
     }
 
-    // CRUD: CREATE & UPDATE
+    function isEventOnDate(item, targetDateObj, targetDateStr) {
+      if (item.type === 'prayer') return true;
+      if (!item.date) return false;
+
+      const origDate = new Date(item.date + 'T00:00:00');
+      if (targetDateObj < origDate) return false;
+
+      const mode = item.repeatMode || 'once';
+
+      if (mode === 'once') return item.date === targetDateStr;
+      if (mode === 'daily') return true;
+      if (mode === 'weekly') return targetDateObj.getDay() === origDate.getDay();
+      if (mode === 'monthly') return targetDateObj.getDate() === origDate.getDate();
+      if (mode === 'yearly') return targetDateObj.getDate() === origDate.getDate() && targetDateObj.getMonth() === origDate.getMonth();
+      if (mode === 'custom') {
+        const customVal = parseInt(item.customDays) || 1;
+        const diffTime = Math.abs(targetDateObj - origDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays % customVal === 0;
+      }
+      return false;
+    }
+
     function saveReminder() {
-      requestNotificationPermission(); // Meminta izin notifikasi saat tombol disimpan
+      requestNotificationPermission();
 
       const id = document.getElementById('reminder-id').value;
       const type = document.getElementById('type').value;
@@ -257,15 +583,17 @@
       const note = document.getElementById('note').value;
       const date = document.getElementById('date').value;
       const repeatMode = document.getElementById('repeat-mode').value;
+      const customDays = document.getElementById('custom-days').value;
       const prayerName = document.getElementById('prayer-name').value;
+      const isTTD = document.getElementById('is-ttd').checked;
 
       if (!title || !time) {
         alert("Judul dan Jam harus diisi ya! ✨");
         return;
       }
 
-      if (type === 'calendar' && repeatMode === 'once' && !date) {
-        alert("Silakan pilih tanggalnya dulu ya! 📅");
+      if (type === 'calendar' && !date) {
+        alert("Silakan pilih tanggal mulainya dulu ya! 📅");
         return;
       }
 
@@ -276,8 +604,10 @@
         time,
         note,
         repeatMode: type === 'calendar' ? repeatMode : 'daily',
-        date: (type === 'calendar' && repeatMode === 'once') ? date : null,
+        customDays: repeatMode === 'custom' ? customDays : null,
+        date: type === 'calendar' ? date : null,
         prayerName: type === 'prayer' ? prayerName : null,
+        isTTD: isTTD,
         lastTriggered: null
       };
 
@@ -289,28 +619,40 @@
 
       localStorage.setItem('my_reminders', JSON.stringify(reminders));
       resetForm();
-      renderReminders();
+      closeModal();
+      alert("Jadwal berhasil disimpan! 🎉");
+      switchPage('list');
     }
 
-    // CRUD: READ
     function renderReminders() {
       const container = document.getElementById('reminder-container');
       container.innerHTML = '';
 
+      if (reminders.length === 0) {
+        container.innerHTML = `<p style="text-align:center; opacity:0.7; padding:20px;">Belum ada jadwal disimpan ✨</p>`;
+        return;
+      }
+
+      const repeatText = {
+        once: '1x Saja',
+        daily: 'Setiap Hari',
+        weekly: 'Setiap Minggu',
+        monthly: 'Setiap Bulan',
+        yearly: 'Setiap Tahun 🎂',
+        custom: 'Kustom'
+      };
+
       reminders.forEach(item => {
         const card = document.createElement('div');
-        card.className = `card ${item.type}`;
+        card.className = `card ${item.type} ${item.isTTD ? 'ttd-card' : ''}`;
         
-        let modeLabel = '';
-        if (item.type === 'calendar') {
-          modeLabel = item.repeatMode === 'once' ? `📅 ${item.date}` : `🔄 Tiap Hari`;
-        } else {
-          modeLabel = `☪️ Pengingat Sholat`;
-        }
+        let modeLabel = item.type === 'calendar' 
+          ? `📅 ${item.date} (${repeatText[item.repeatMode] || '1x Saja'})` 
+          : `☪️ Pengingat Sholat`;
 
         card.innerHTML = `
           <div class="card-info">
-            <h3>${item.title}</h3>
+            <h3>${item.title} ${item.isTTD ? '💊' : ''}</h3>
             <p>${modeLabel} | ⏰ ${item.time}</p>
             <p><small>${item.note || ''}</small></p>
           </div>
@@ -323,7 +665,6 @@
       });
     }
 
-    // CRUD: EDIT
     function editReminder(id) {
       const item = reminders.find(r => r.id === id);
       if (!item) return;
@@ -333,25 +674,30 @@
       document.getElementById('title').value = item.title;
       document.getElementById('time').value = item.time;
       document.getElementById('note').value = item.note;
+      document.getElementById('is-ttd').checked = !!item.isTTD;
 
       toggleFormFields();
 
       if (item.type === 'calendar') {
         document.getElementById('repeat-mode').value = item.repeatMode || 'once';
+        document.getElementById('custom-days').value = item.customDays || '';
         toggleDateField();
-        if (item.repeatMode === 'once') {
-          document.getElementById('date').value = item.date;
-        }
+        document.getElementById('date').value = item.date;
       } else {
         document.getElementById('prayer-name').value = item.prayerName;
       }
+
+      closeModal();
+      switchPage('form');
     }
 
-    // CRUD: DELETE
     function deleteReminder(id) {
       reminders = reminders.filter(r => r.id !== id);
       localStorage.setItem('my_reminders', JSON.stringify(reminders));
       renderReminders();
+      renderCalendar();
+      renderAnalysis();
+      if (selectedDateForModal) openDateModal(selectedDateForModal);
     }
 
     function resetForm() {
@@ -360,57 +706,208 @@
       document.getElementById('time').value = '';
       document.getElementById('note').value = '';
       document.getElementById('date').value = '';
+      document.getElementById('custom-days').value = '';
+      document.getElementById('is-ttd').checked = false;
       document.getElementById('repeat-mode').value = 'once';
       toggleDateField();
     }
 
-    // LOGIKA PENGECEKAN NOTIFIKASI
-    setInterval(() => {
-      const now = new Date();
-      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      const currentDate = now.toISOString().split('T')[0];
+    function changeMonth(delta) {
+      viewMonth += delta;
+      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      else if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      renderCalendar();
+    }
 
-      reminders.forEach(item => {
-        if (item.time === currentTime && item.lastTriggered !== currentDate) {
-          
-          if (item.type === 'calendar' && item.repeatMode === 'once' && item.date === currentDate) {
-            triggerNotification(item.title, item.note || "Ada jadwal untuk hari ini!");
-            item.lastTriggered = currentDate;
-            localStorage.setItem('my_reminders', JSON.stringify(reminders));
-          } 
-          else if (item.type === 'calendar' && item.repeatMode === 'daily') {
-            triggerNotification(item.title, item.note || "Pengingat harian kamu~ 💊");
-            item.lastTriggered = currentDate;
-            localStorage.setItem('my_reminders', JSON.stringify(reminders));
-          }
-          else if (item.type === 'prayer') {
-            triggerNotification(`Waktunya Sholat ${item.prayerName}! ☪️`, item.note || "Ayo siap-siap ambil wudhu~");
-            item.lastTriggered = currentDate;
-            localStorage.setItem('my_reminders', JSON.stringify(reminders));
-          }
-        }
+    // CARI TANGGAL AWAL TRACKING TTD
+    function getEarliestTTDDate() {
+      const ttdReminders = reminders.filter(r => r.isTTD && r.date);
+      if (ttdReminders.length === 0) return null;
+      let earliest = new Date(ttdReminders[0].date + 'T00:00:00');
+      ttdReminders.forEach(r => {
+        const d = new Date(r.date + 'T00:00:00');
+        if (d < earliest) earliest = d;
       });
-    }, 10000);
+      return earliest;
+    }
 
-    // Trigger Notifikasi via Service Worker
-    function triggerNotification(title, body) {
-      if (Notification.permission === "granted") {
-        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'SHOW_NOTIFICATION',
-            title: title,
-            body: body
-          });
+    function renderCalendar() {
+      const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+      document.getElementById('month-year-label').innerText = `${monthNames[viewMonth]} ${viewYear}`;
+
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+
+      const dayHeaders = ["M", "S", "S", "R", "K", "J", "S"];
+      dayHeaders.forEach(dh => { grid.innerHTML += `<div class="day-name">${dh}</div>`; });
+
+      const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+      const totalDays = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+
+      const earliestTTDDate = getEarliestTTDDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="day-cell empty"></div>`;
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const monthFormatted = String(viewMonth + 1).padStart(2, '0');
+        const dayFormatted = String(day).padStart(2, '0');
+        const dateStr = `${viewYear}-${monthFormatted}-${dayFormatted}`;
+        const cellDate = new Date(viewYear, viewMonth, day);
+        const dayOfWeek = cellDate.getDay();
+
+        let classList = "day-cell";
+        if (dateStr === todayStr) classList += " today";
+
+        const hasTTD = reminders.some(r => r.isTTD && isEventOnDate(r, cellDate, dateStr));
+        
+        if (hasTTD) {
+          if (dayOfWeek === ttdTargetDay) classList += " ttd-green";
+          else classList += " ttd-yellow";
         } else {
-          new Notification(title, {
-            body: body,
-            icon: "https://cdn-icons-png.flaticon.com/512/2913/2913520.png"
-          });
+          // Hanya beri warna MERAH jika TTD pernah dicatat & tanggalnya SETELAH tanggal TTD pertama
+          if (earliestTTDDate && cellDate >= earliestTTDDate && dayOfWeek === ttdTargetDay && cellDate < new Date(todayStr + 'T00:00:00')) {
+            classList += " ttd-red";
+          }
         }
+
+        const hasOtherEvent = reminders.some(r => !r.isTTD && isEventOnDate(r, cellDate, dateStr));
+        let dotHtml = hasOtherEvent ? `<div class="event-dot"></div>` : '';
+
+        grid.innerHTML += `<div class="${classList}" onclick="openDateModal('${dateStr}')">${day}${dotHtml}</div>`;
       }
     }
 
-    renderReminders();
+    function openDateModal(dateStr) {
+      selectedDateForModal = dateStr;
+      document.getElementById('modal-date-title').innerText = `Jadwal (${dateStr})`;
+      const listContainer = document.getElementById('modal-event-list');
+      listContainer.innerHTML = '';
+
+      const cellDate = new Date(dateStr + 'T00:00:00');
+      const dayReminders = reminders.filter(r => isEventOnDate(r, cellDate, dateStr));
+
+      if (dayReminders.length === 0) {
+        listContainer.innerHTML = `<p style="opacity:0.7; font-size:12px;">Belum ada kegiatan pada tanggal ini.</p>`;
+      } else {
+        dayReminders.forEach(item => {
+          listContainer.innerHTML += `
+            <div class="card ${item.type}">
+              <div class="card-info">
+                <h3>${item.title}</h3>
+                <p>⏰ ${item.time}</p>
+              </div>
+              <div class="actions">
+                <button onclick="editReminder('${item.id}')">✏️</button>
+                <button onclick="deleteReminder('${item.id}')">🗑️</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      document.getElementById('date-modal').classList.remove('hidden');
+    }
+
+    function addNewEventForDate() {
+      resetForm();
+      document.getElementById('date').value = selectedDateForModal;
+      document.getElementById('repeat-mode').value = 'once';
+      toggleDateField();
+      closeModal();
+      switchPage('form');
+    }
+
+    function closeModal() {
+      document.getElementById('date-modal').classList.add('hidden');
+    }
+
+    function renderHomePage() {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      const statusContainer = document.getElementById('home-ttd-status');
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+      const todayTTD = reminders.some(r => r.isTTD && isEventOnDate(r, today, todayStr));
+
+      if (todayTTD) {
+        statusContainer.innerHTML = `<span style="color:#2D6A4F; font-weight:bold;">✅ Ada jadwal TTD hari ini!</span>`;
+      } else {
+        statusContainer.innerHTML = today.getDay() === ttdTargetDay 
+          ? `<span style="color:#D97706; font-weight:bold;">⚠️ Hari ini ${dayNames[ttdTargetDay]}! Waktunya minum TTD 💊</span>`
+          : `<span style="opacity:0.8;">Belum ada jadwal TTD hari ini.</span>`;
+      }
+
+      const upcomingContainer = document.getElementById('home-upcoming');
+      upcomingContainer.innerHTML = '';
+      const topList = reminders.slice(0, 3);
+
+      if (topList.length === 0) {
+        upcomingContainer.innerHTML = `<p style="opacity:0.7; font-size:12px;">Belum ada pengingat.</p>`;
+      } else {
+        topList.forEach(item => {
+          upcomingContainer.innerHTML += `
+            <div class="card ${item.type}" style="padding:10px 14px;">
+              <div class="card-info">
+                <h4 style="font-size:14px;">${item.title}</h4>
+                <p>⏰ ${item.time}</p>
+              </div>
+            </div>
+          `;
+        });
+      }
+    }
+
+    function renderAnalysis() {
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      const ttdReminders = reminders.filter(r => r.isTTD);
+      const totalTaken = ttdReminders.length;
+      let targetDayCount = 0;
+
+      ttdReminders.forEach(r => {
+        if (r.date) {
+          const d = new Date(r.date + 'T00:00:00');
+          if (d.getDay() === ttdTargetDay) targetDayCount++;
+        }
+      });
+
+      const today = new Date();
+      const earliestTTDDate = getEarliestTTDDate();
+      let missedCount = 0;
+
+      // Terlewat HANYA dihitung dari tanggal TTD pertama diciptakan
+      if (earliestTTDDate) {
+        let checkDate = new Date(earliestTTDDate);
+        while (checkDate < new Date(today.toISOString().split('T')[0] + 'T00:00:00')) {
+          if (checkDate.getDay() === ttdTargetDay) {
+            const dateStr = checkDate.toISOString().split('T')[0];
+            const hasRecord = reminders.some(r => r.isTTD && isEventOnDate(r, checkDate, dateStr));
+            if (!hasRecord) missedCount++;
+          }
+          checkDate.setDate(checkDate.getDate() + 1);
+        }
+      }
+
+      document.getElementById('stat-compliance').innerText = totalTaken > 0 ? `${Math.round((targetDayCount/totalTaken)*100)}%` : '0%';
+      document.getElementById('stat-total').innerText = `${totalTaken} Kali`;
+      document.getElementById('stat-target-day').innerText = `${targetDayCount} Kali`;
+      document.getElementById('stat-missed').innerText = `${missedCount} Kali`;
+
+      const feedback = document.getElementById('analysis-feedback');
+      feedback.style.background = '#E2F0CB';
+      feedback.style.color = '#2D6A4F';
+      feedback.innerText = totalTaken > 0
+        ? `Hari Rutin TTD diset ke hari ${dayNames[ttdTargetDay]}. Statistik dihitung mulai dari TTD pertama kamu.`
+        : "Belum ada riwayat TTD. Angka terlewat diset 0 Kali.";
+    }
+
+    renderHomePage();
+    renderCalendar();
   </script>
 </body>
 </html>
+
+    
