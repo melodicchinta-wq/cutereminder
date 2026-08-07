@@ -378,23 +378,206 @@
           // Case 3: Mode Sholat (Berulang Setiap Hari)
           else if (item.type === 'prayer') {
             triggerNotification(`Waktunya Sholat ${item.prayerName}! ☪️`, item.note || "Ayo siap-siap ambil wudhu~");
-            item.lastTriggered = currentDate;
-            localStorage.setItem('my_reminders', JSON.stringify(reminders));
-          }
-        }
-      });
-    }, 10000);
+<script>
+  let reminders = JSON.parse(localStorage.getItem('my_reminders')) || [];
 
-    function triggerNotification(title, body) {
-      if (Notification.permission === "granted") {
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(() => {
+      console.log('Service Worker Registered');
+    });
+  }
+
+  // Fungsi Minta Izin Notifikasi (Panggil via Tombol Simpan atau saat awal buka)
+  function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission();
+    }
+  }
+
+  function toggleFormFields() {
+    const type = document.getElementById('type').value;
+    if (type === 'calendar') {
+      document.getElementById('calendar-fields').classList.remove('hidden');
+      document.getElementById('prayer-fields').classList.add('hidden');
+    } else {
+      document.getElementById('calendar-fields').classList.add('hidden');
+      document.getElementById('prayer-fields').classList.remove('hidden');
+    }
+  }
+
+  function toggleDateField() {
+    const mode = document.getElementById('repeat-mode').value;
+    const dateGroup = document.getElementById('date-group');
+    if (mode === 'daily') {
+      dateGroup.classList.add('hidden');
+    } else {
+      dateGroup.classList.remove('hidden');
+    }
+  }
+
+  function saveReminder() {
+    requestNotificationPermission(); // Minta izin notifikasi saat pengguna klik simpan
+
+    const id = document.getElementById('reminder-id').value;
+    const type = document.getElementById('type').value;
+    const title = document.getElementById('title').value;
+    const time = document.getElementById('time').value;
+    const note = document.getElementById('note').value;
+    const date = document.getElementById('date').value;
+    const repeatMode = document.getElementById('repeat-mode').value;
+    const prayerName = document.getElementById('prayer-name').value;
+
+    if (!title || !time) {
+      alert("Judul dan Jam harus diisi ya! ✨");
+      return;
+    }
+
+    if (type === 'calendar' && repeatMode === 'once' && !date) {
+      alert("Silakan pilih tanggalnya dulu ya! 📅");
+      return;
+    }
+
+    const itemData = {
+      id: id ? id : Date.now().toString(),
+      type,
+      title: type === 'prayer' ? `Sholat ${prayerName}` : title,
+      time,
+      note,
+      repeatMode: type === 'calendar' ? repeatMode : 'daily',
+      date: (type === 'calendar' && repeatMode === 'once') ? date : null,
+      prayerName: type === 'prayer' ? prayerName : null,
+      lastTriggered: null
+    };
+
+    if (id) {
+      reminders = reminders.map(item => item.id === id ? itemData : item);
+    } else {
+      reminders.push(itemData);
+    }
+
+    localStorage.setItem('my_reminders', JSON.stringify(reminders));
+    resetForm();
+    renderReminders();
+  }
+
+  function renderReminders() {
+    const container = document.getElementById('reminder-container');
+    container.innerHTML = '';
+
+    reminders.forEach(item => {
+      const card = document.createElement('div');
+      card.className = `card ${item.type}`;
+      
+      let modeLabel = '';
+      if (item.type === 'calendar') {
+        modeLabel = item.repeatMode === 'once' ? `📅 ${item.date}` : `🔄 Tiap Hari`;
+      } else {
+        modeLabel = `☪️ Pengingat Sholat`;
+      }
+
+      card.innerHTML = `
+        <div class="card-info">
+          <h3>${item.title}</h3>
+          <p>${modeLabel} | ⏰ ${item.time}</p>
+          <p><small>${item.note || ''}</small></p>
+        </div>
+        <div class="actions">
+          <button onclick="editReminder('${item.id}')">✏️</button>
+          <button onclick="deleteReminder('${item.id}')">🗑️</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function editReminder(id) {
+    const item = reminders.find(r => r.id === id);
+    if (!item) return;
+
+    document.getElementById('reminder-id').value = item.id;
+    document.getElementById('type').value = item.type;
+    document.getElementById('title').value = item.title;
+    document.getElementById('time').value = item.time;
+    document.getElementById('note').value = item.note;
+
+    toggleFormFields();
+
+    if (item.type === 'calendar') {
+      document.getElementById('repeat-mode').value = item.repeatMode || 'once';
+      toggleDateField();
+      if (item.repeatMode === 'once') {
+        document.getElementById('date').value = item.date;
+      }
+    } else {
+      document.getElementById('prayer-name').value = item.prayerName;
+    }
+  }
+
+  function deleteReminder(id) {
+    reminders = reminders.filter(r => r.id !== id);
+    localStorage.setItem('my_reminders', JSON.stringify(reminders));
+    renderReminders();
+  }
+
+  function resetForm() {
+    document.getElementById('reminder-id').value = '';
+    document.getElementById('title').value = '';
+    document.getElementById('time').value = '';
+    document.getElementById('note').value = '';
+    document.getElementById('date').value = '';
+    document.getElementById('repeat-mode').value = 'once';
+    toggleDateField();
+  }
+
+  // Pengecekan Pengingat
+  setInterval(() => {
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const currentDate = now.toISOString().split('T')[0];
+
+    reminders.forEach(item => {
+      if (item.time === currentTime && item.lastTriggered !== currentDate) {
+        
+        if (item.type === 'calendar' && item.repeatMode === 'once' && item.date === currentDate) {
+          triggerNotification(item.title, item.note || "Ada jadwal untuk hari ini!");
+          item.lastTriggered = currentDate;
+          localStorage.setItem('my_reminders', JSON.stringify(reminders));
+        } 
+        else if (item.type === 'calendar' && item.repeatMode === 'daily') {
+          triggerNotification(item.title, item.note || "Pengingat harian kamu~ 💊");
+          item.lastTriggered = currentDate;
+          localStorage.setItem('my_reminders', JSON.stringify(reminders));
+        }
+        else if (item.type === 'prayer') {
+          triggerNotification(`Waktunya Sholat ${item.prayerName}! ☪️`, item.note || "Ayo siap-siap ambil wudhu~");
+          item.lastTriggered = currentDate;
+          localStorage.setItem('my_reminders', JSON.stringify(reminders));
+        }
+      }
+    });
+  }, 10000);
+
+  // Trigger Notifikasi via Service Worker
+  function triggerNotification(title, body) {
+    if (Notification.permission === "granted") {
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          title: title,
+          body: body
+        });
+      } else {
         new Notification(title, {
           body: body,
           icon: "https://cdn-icons-png.flaticon.com/512/2913/2913520.png"
         });
       }
     }
+  }
 
-    renderReminders();
-  </script>
+  renderReminders();
+</script>
+  
 </body>
 </html>
