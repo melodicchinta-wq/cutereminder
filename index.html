@@ -3,29 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dark Cute Reminder & TTD Tracker 🌙</title>
+  <title>Dark Cute Reminder, Tracker & Activity Log 🌙</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* Dark Backgrounds */
       --bg-color: #111123;
       --card-bg: #1B1B33;
       --card-bg-2: #242442;
       --sidebar-bg: #16162B;
-      
-      /* Accents Pastel Neon */
       --primary: #C084FC;
       --primary-hover: #A855F7;
       --primary-glow: rgba(192, 132, 252, 0.35);
       --accent: #38BDF8;
       --pink-cute: #F472B6;
-      
-      /* Status TTD */
       --green-ttd: #4ADE80;
       --yellow-ttd: #FBBF24;
       --red-ttd: #FB7185;
-
-      /* Text & Borders */
       --text-color: #F3F4F6;
       --text-muted: #9CA3AF;
       --border: #2D2D4E;
@@ -48,7 +41,6 @@
       flex-direction: column;
     }
 
-    /* --- LAYOUT UTAMA --- */
     .app-container {
       width: 100%;
       min-height: 100vh;
@@ -78,7 +70,6 @@
       margin: 0 auto;
     }
 
-    /* BOTTOM NAV (MOBILE) */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -121,7 +112,6 @@
       text-shadow: 0 0 8px var(--primary-glow);
     }
 
-    /* --- RESPONSIVE UNTUK LAPTOP / DESKTOP (>= 850px) --- */
     @media (min-width: 850px) {
       .app-container { flex-direction: row; }
       header.mobile-header { display: none; }
@@ -176,7 +166,6 @@
         margin: 0;
       }
 
-      /* Multi-Column Grid Layout Laptop */
       .dashboard-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -185,7 +174,6 @@
 
       .dashboard-grid .full-width { grid-column: span 2; }
 
-      /* Visual Optimization Laptop */
       .reminder-grid.laptop-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -193,7 +181,6 @@
       }
     }
 
-    /* --- COMPONENTS & CARDS --- */
     .page { display: none; }
     .page.active {
       display: block;
@@ -282,7 +269,6 @@
       gap: 14px;
     }
 
-    /* CARD STANDAR DAFTAR JADWAL */
     .card {
       background: #1B1B38;
       padding: 18px 20px;
@@ -298,6 +284,7 @@
     .card:hover { transform: translateY(-2px); }
     .card.prayer { border-left-color: var(--accent); }
     .card.ttd-card { border-left-color: var(--green-ttd); }
+    .card.log { border-left-color: var(--pink-cute); }
 
     .card-top-row {
       display: flex;
@@ -324,6 +311,7 @@
     .badge-ttd { background: rgba(74, 222, 128, 0.15); color: var(--green-ttd); border: 1px solid var(--green-ttd); }
     .badge-prayer { background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid var(--accent); }
     .badge-event { background: rgba(192, 132, 252, 0.15); color: var(--primary); border: 1px solid var(--primary); }
+    .badge-log { background: rgba(244, 114, 182, 0.15); color: var(--pink-cute); border: 1px solid var(--pink-cute); }
 
     .repeat-pill {
       display: inline-block;
@@ -385,7 +373,6 @@
     .card-bottom-actions button.btn-edit:hover { background: var(--primary); color: #111123; }
     .card-bottom-actions button.btn-delete:hover { background: var(--red-ttd); color: #fff; }
 
-    /* CARD JADWAL MENDATANG (BERANDA) */
     .card-upcoming {
       background: #242442;
       border-left: 4px solid var(--primary);
@@ -398,6 +385,7 @@
     }
     .card-upcoming.ttd-card { border-left-color: var(--green-ttd); }
     .card-upcoming.prayer { border-left-color: var(--accent); }
+    .card-upcoming.log { border-left-color: var(--pink-cute); }
 
     .card-upcoming-header {
       display: flex;
@@ -417,7 +405,6 @@
       font-weight: 500;
     }
 
-    /* KALENDER */
     .calendar-header {
       display: flex;
       justify-content: space-between;
@@ -492,7 +479,6 @@
     .event-dot { width: 5px; height: 5px; background-color: var(--primary); border-radius: 50%; position: absolute; bottom: 4px; }
     .day-cell.today { border: 2px solid var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
 
-    /* MODAL */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -535,13 +521,46 @@
     .stat-card h4 { font-size: 12px; color: var(--text-muted); }
     .stat-card p { font-size: 20px; font-weight: 700; color: var(--primary); margin-top: 4px; }
 
+    .counter-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card-bg-2);
+      padding: 8px 14px;
+      border-radius: 12px;
+      width: fit-content;
+      border: 1px solid var(--border);
+    }
+
+    .counter-btn {
+      background: var(--primary);
+      color: #111123;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .counter-value {
+      font-weight: bold;
+      font-size: 16px;
+      color: var(--pink-cute);
+      min-width: 24px;
+      text-align: center;
+    }
+
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
   <div class="app-container">
-    <!-- SIDEBAR LAPTOP -->
     <aside class="sidebar">
       <div class="brand"><span>🌙</span> CuteReminder</div>
       <div class="nav-group">
@@ -553,20 +572,17 @@
       </div>
     </aside>
 
-    <!-- HEADER MOBILE -->
     <header class="mobile-header">
       <h1 id="page-title-mobile">Beranda 🌙</h1>
     </header>
 
-    <!-- KONTEN UTAMA -->
     <main class="main-content">
-      <!-- PAGE 1: HOME -->
       <div id="page-home" class="page active">
         <div class="dashboard-grid">
           <div class="card-box full-width">
             <h3> Welcome To Cute Reminder ✨</h3>
             <p style="font-size: 13px; margin-top: 6px; color: var(--text-muted); line-height: 1.5;">
-              Kelola jadwal harian, pengingat, dan pantau konsumsi Tablet Tambah Darah (TTD) kamu secara teratur! 🌸
+              Kelola jadwal harian, pengingat bebas, catat aktivitas harian (seperti PUP/minum air), dan pantau Tablet Tambah Darah (TTD)! 🌸
             </p>
           </div>
 
@@ -576,7 +592,6 @@
             <button class="btn" style="margin-top: 14px;" onclick="switchPage('ttd')">Buka Kalender 📅</button>
           </div>
 
-          <!-- JADWAL MENDATANG -->
           <div class="card-box">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
               <h3 style="margin: 0;">Jadwal Mendatang 🗓️</h3>
@@ -587,7 +602,6 @@
         </div>
       </div>
 
-      <!-- PAGE 2: FORM -->
       <div id="page-form" class="page">
         <div class="card-box" style="max-width: 650px; margin: 0 auto;">
           <input type="hidden" id="reminder-id">
@@ -595,17 +609,18 @@
           <div class="form-group">
             <label>Kategori Pengingat</label>
             <select id="type" onchange="toggleFormFields()">
-              <option value="calendar">📅 Catatan / Acara / Ulang Tahun</option>
+              <option value="calendar">📅 Catatan / Acara / Pengingat Bebas</option>
+              <option value="log">💩/💧 Catatan Aktivitas Bebas (Hitung Berapa Kali)</option>
               <option value="prayer">☪️ Jadwal Sholat</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label>Judul Catatan / Acara</label>
-            <input type="text" id="title" placeholder="Contoh: Minum TTD 💊 / Ultah Teman 🎂">
+            <label>Judul Catatan / Kegiatan</label>
+            <input type="text" id="title" placeholder="Contoh: Minum TTD 💊 / Catat PUP 💩 / Ultah 🎂">
           </div>
 
-          <div class="form-group" style="display:flex; align-items:center; gap:10px; background:var(--card-bg-2); padding:12px; border-radius:14px; border:1px dashed var(--border);">
+          <div class="form-group" id="ttd-checkbox-group" style="display:flex; align-items:center; gap:10px; background:var(--card-bg-2); padding:12px; border-radius:14px; border:1px dashed var(--border);">
             <input type="checkbox" id="is-ttd" style="width:auto; cursor:pointer;">
             <label for="is-ttd" style="margin:0; font-size:13px; cursor:pointer; color:var(--text-color);">Ini adalah Konsumsi TTD 💊 (Masuk Analisis)</label>
           </div>
@@ -647,8 +662,8 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label>Jam Pengingat</label>
+          <div class="form-group" id="time-group">
+            <label>Jam Pengingat <span style="font-size:11px; color:var(--pink-cute);">(Opsional)</span></label>
             <input type="time" id="time">
           </div>
 
@@ -661,7 +676,6 @@
         </div>
       </div>
 
-      <!-- PAGE 3: LIST -->
       <div id="page-list" class="page">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
           <h3 style="color:var(--primary); font-size:15px;">Semua Jadwal Tersimpan</h3>
@@ -670,7 +684,6 @@
         <div class="reminder-grid laptop-grid" id="reminder-container"></div>
       </div>
 
-      <!-- PAGE 4: KALENDER INTERAKTIF -->
       <div id="page-ttd" class="page">
         <div class="card-box">
           <div class="calendar-header">
@@ -685,7 +698,6 @@
         </div>
       </div>
 
-      <!-- PAGE 5: ANALISIS -->
       <div id="page-analysis" class="page">
         <div class="dashboard-grid">
           <div class="card-box">
@@ -721,7 +733,6 @@
       </div>
     </main>
 
-    <!-- BOTTOM NAV MOBILE -->
     <nav class="bottom-nav">
       <button class="nav-item active" onclick="switchPage('home')"><span class="icon">🏠</span>Home</button>
       <button class="nav-item" onclick="switchPage('form')"><span class="icon">📝</span>Input</button>
@@ -731,7 +742,6 @@
     </nav>
   </div>
 
-  <!-- MODAL KALENDER -->
   <div id="date-modal" class="modal-overlay hidden">
     <div class="modal-content">
       <h3 id="modal-date-title" style="margin-bottom:12px; color:var(--primary);">Jadwal Tanggal</h3>
@@ -791,8 +801,9 @@
 
     function toggleFormFields() {
       const type = document.getElementById('type').value;
-      document.getElementById('calendar-fields').classList.toggle('hidden', type !== 'calendar');
+      document.getElementById('calendar-fields').classList.toggle('hidden', type === 'prayer');
       document.getElementById('prayer-fields').classList.toggle('hidden', type !== 'prayer');
+      document.getElementById('ttd-checkbox-group').classList.toggle('hidden', type === 'prayer');
     }
 
     function toggleDateField() {
@@ -826,22 +837,26 @@
       const prayerName = document.getElementById('prayer-name').value;
       const isTTD = document.getElementById('is-ttd').checked;
 
-      if (!title || !time || (type === 'calendar' && !date)) { 
-        alert("Lengkapi Judul, Jam, dan Tanggal ya! ✨"); 
+      if (!title || (type !== 'prayer' && !date)) { 
+        alert("Lengkapi Judul dan Tanggal ya! ✨"); 
         return; 
       }
+
+      const existingItem = id ? reminders.find(r => r.id === id) : null;
+      const count = existingItem ? (existingItem.count || 0) : (type === 'log' ? 1 : 0);
 
       const itemData = { 
         id: id || Date.now().toString(), 
         type, 
         title: type === 'prayer' ? `Sholat ${prayerName}` : title, 
-        time, 
+        time: time || null, 
         note, 
-        repeatMode: type === 'calendar' ? repeatMode : 'daily', 
+        repeatMode: type !== 'prayer' ? repeatMode : 'daily', 
         customDays: repeatMode === 'custom' ? customDays : null, 
-        date: type === 'calendar' ? date : null, 
+        date: type !== 'prayer' ? date : null, 
         prayerName: type === 'prayer' ? prayerName : null, 
-        isTTD: isTTD 
+        isTTD: isTTD,
+        count: count
       };
 
       if (id) { 
@@ -853,11 +868,26 @@
       localStorage.setItem('my_reminders', JSON.stringify(reminders));
       resetForm(); 
       closeModal(); 
-      alert("Jadwal berhasil disimpan! 🎉"); 
+      alert("Jadwal/Log berhasil disimpan! 🎉"); 
       
       renderCalendar();
       renderAnalysis();
       switchPage('list');
+    }
+
+    function changeCount(id, delta) {
+      reminders = reminders.map(item => {
+        if (item.id === id) {
+          const newCount = Math.max(0, (item.count || 0) + delta);
+          return { ...item, count: newCount };
+        }
+        return item;
+      });
+      localStorage.setItem('my_reminders', JSON.stringify(reminders));
+      renderReminders();
+      if (!document.getElementById('date-modal').classList.contains('hidden')) {
+        openDateModal(selectedDateForModal);
+      }
     }
 
     function deleteReminder(id) {
@@ -880,13 +910,13 @@
       document.getElementById('reminder-id').value = item.id;
       document.getElementById('type').value = item.type;
       document.getElementById('title').value = item.title;
-      document.getElementById('time').value = item.time;
+      document.getElementById('time').value = item.time || '';
       document.getElementById('note').value = item.note || '';
       document.getElementById('is-ttd').checked = !!item.isTTD;
       
       toggleFormFields();
 
-      if (item.type === 'calendar') {
+      if (item.type !== 'prayer') {
         document.getElementById('date').value = item.date;
         document.getElementById('repeat-mode').value = item.repeatMode || 'once';
         toggleDateField();
@@ -969,17 +999,19 @@
       let badgeHTML = '';
       if (item.isTTD) {
         badgeHTML = `<span class="badge badge-ttd">TABLET TTD 💊</span>`;
+      } else if (item.type === 'log') {
+        badgeHTML = `<span class="badge badge-log">LOG LOG 📊</span>`;
       } else if (item.type === 'prayer') {
         badgeHTML = `<span class="badge badge-prayer">SHOLAT ☪️</span>`;
       } else {
         badgeHTML = `<span class="badge badge-event">ACARA 📅</span>`;
       }
 
-      let repeatLabel = item.type === 'calendar' ? repeatText[item.repeatMode] || '1x Saja' : 'Setiap Hari';
+      let repeatLabel = item.type !== 'prayer' ? repeatText[item.repeatMode] || '1x Saja' : 'Setiap Hari';
 
       card.innerHTML = `
         <div class="card-upcoming-header">
-          <div class="card-upcoming-title">${item.title}</div>
+          <div class="card-upcoming-title">${item.title} ${item.type === 'log' ? `(${item.count || 0}x)` : ''}</div>
           ${badgeHTML}
         </div>
         <div class="card-upcoming-repeat">${repeatLabel}</div>
@@ -1003,13 +1035,29 @@
       let badgeHTML = '';
       if (item.isTTD) {
         badgeHTML = `<span class="badge badge-ttd">TABLET TTD 💊</span>`;
+      } else if (item.type === 'log') {
+        badgeHTML = `<span class="badge badge-log">ACTIVITY LOG 💩</span>`;
       } else if (item.type === 'prayer') {
         badgeHTML = `<span class="badge badge-prayer">SHOLAT ☪️</span>`;
       } else {
         badgeHTML = `<span class="badge badge-event">ACARA 📅</span>`;
       }
 
-      let repeatLabel = item.type === 'calendar' ? repeatText[item.repeatMode] || '1x Saja' : 'Setiap Hari';
+      let repeatLabel = item.type !== 'prayer' ? repeatText[item.repeatMode] || '1x Saja' : 'Setiap Hari';
+
+      let counterHTML = '';
+      if (item.type === 'log') {
+        counterHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <span style="font-size:13px; font-weight:600;">Jumlah Hari Ini:</span>
+            <div class="counter-control">
+              <button class="counter-btn" onclick="changeCount('${item.id}', -1)">-</button>
+              <span class="counter-value">${item.count || 0}</span>
+              <button class="counter-btn" onclick="changeCount('${item.id}', 1)">+</button>
+            </div>
+          </div>
+        `;
+      }
 
       card.innerHTML = `
         <div class="card-top-row">
@@ -1020,9 +1068,11 @@
         <div class="repeat-pill">${repeatLabel}</div>
 
         <div class="time-date-box">
-          <span>⏰ <span class="highlight">${item.time}</span></span>
+          ${item.time ? `<span>⏰ <span class="highlight">${item.time}</span></span>` : '<span>⏰ <span style="opacity:0.6;">Tanpa Jam</span></span>'}
           ${item.date ? `<span>📅 ${item.date}</span>` : ''}
         </div>
+
+        ${counterHTML}
 
         ${item.note ? `<div class="card-note">💬 <span>"${item.note}"</span></div>` : ''}
 
@@ -1043,7 +1093,7 @@
         return; 
       }
 
-      reminders.sort((a,b) => a.time.localeCompare(b.time)).forEach(item => {
+      reminders.sort((a,b) => (a.time || "23:59").localeCompare(b.time || "23:59")).forEach(item => {
         container.appendChild(createCardElement(item));
       });
     }
@@ -1231,7 +1281,7 @@
       if (eventsOnDay.length === 0) {
         modalList.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:13px; padding:10px;">Tidak ada kegiatan di tanggal ini.</p>`;
       } else {
-        eventsOnDay.sort((a,b) => a.time.localeCompare(b.time)).forEach(item => {
+        eventsOnDay.sort((a,b) => (a.time || "23:59").localeCompare(b.time || "23:59")).forEach(item => {
           modalList.appendChild(createCardElement(item));
         });
       }
@@ -1260,6 +1310,3 @@
   </script>
 </body>
 </html>
-
-
-    
