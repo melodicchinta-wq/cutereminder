@@ -476,7 +476,24 @@
       border: 1px solid rgba(74, 222, 128, 0.5) !important;
     }
 
-    .event-dot { width: 5px; height: 5px; background-color: var(--primary); border-radius: 50%; position: absolute; bottom: 4px; }
+    .event-dot { 
+      width: 5px; 
+      height: 5px; 
+      background-color: var(--primary); 
+      border-radius: 50%; 
+      position: absolute; 
+      bottom: 4px; 
+    }
+
+    .event-roman {
+      position: absolute;
+      bottom: 2px;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--pink-cute);
+      line-height: 1;
+    }
+
     .day-cell.today { border: 2px solid var(--accent); box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
 
     .modal-overlay {
@@ -582,7 +599,7 @@
           <div class="card-box full-width">
             <h3> Welcome To Cute Reminder ✨</h3>
             <p style="font-size: 13px; margin-top: 6px; color: var(--text-muted); line-height: 1.5;">
-              Kelola jadwal harian, pengingat, catat aktivitas harian ( seperti PUP / minum air ), dan pantau konsumsi Tablet Tambah Darah (TTD) kamu secara teratu ya dan jika ada saran dan kritik langsung saja kirim pesan! 🌸
+              Kelola jadwal harian, pengingat, catat aktivitas harian ( seperti PUP / minum air ), dan pantau konsumsi Tablet Tambah Darah (TTD) kamu secara teratur ya! 🌸
             </p>
           </div>
 
@@ -616,8 +633,15 @@
           </div>
 
           <div class="form-group">
-            <label>Judul Catatan / Kegiatan</label>
-            <input type="text" id="title" placeholder="Contoh: Minum TTD 💊 / Catat PUP 💩 / Ultah 🎂">
+            <label>Pilih Aktivitas dari Daftar</label>
+            <select id="preset-title" onchange="applyPresetTitle()">
+              <!-- Preset diisi dari JavaScript -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Judul Catatan / Kegiatan (atau Tulis Baru)</label>
+            <input type="text" id="title" placeholder="Contoh: Senam Pagi 🤸‍♀️ / Minum TTD 💊">
           </div>
 
           <div class="form-group" id="ttd-checkbox-group" style="display:flex; align-items:center; gap:10px; background:var(--card-bg-2); padding:12px; border-radius:14px; border:1px dashed var(--border);">
@@ -629,7 +653,7 @@
             <div class="form-group">
               <label>Mode Pengulangan</label>
               <select id="repeat-mode" onchange="toggleDateField()">
-                <option value="once">1x Saja</option>
+                <option value="once">1x Saja (Tanggal Opsional)</option>
                 <option value="daily">Setiap Hari</option>
                 <option value="weekly">Setiap Minggu</option>
                 <option value="monthly">Setiap Bulan</option>
@@ -639,7 +663,7 @@
             </div>
 
             <div class="form-group" id="date-group">
-              <label>Tanggal Mulai / Target</label>
+              <label>Tanggal Mulai / Target <span style="font-size:11px; color:var(--pink-cute);">(Opsional untuk 1x Saja)</span></label>
               <input type="date" id="date">
             </div>
 
@@ -746,13 +770,23 @@
     <div class="modal-content">
       <h3 id="modal-date-title" style="margin-bottom:12px; color:var(--primary);">Jadwal Tanggal</h3>
       <div id="modal-event-list" class="reminder-grid" style="margin-bottom:16px;"></div>
-      <button class="btn" onclick="addNewEventForDate()" style="margin-bottom:8px;">+ Tambah Kegiatan</button>
+      <button class="btn" onclick="addNewEventForDate()" style="margin-bottom:8px;">+ Tambah Kegiatan Hari Ini</button>
       <button class="btn btn-secondary" onclick="closeModal()">Tutup</button>
     </div>
   </div>
 
   <script>
     let reminders = JSON.parse(localStorage.getItem('my_reminders')) || [];
+    let activityPresets = JSON.parse(localStorage.getItem('activity_presets')) || [
+      "Minum Air Putih 💧",
+      "PUP 💩",
+      "Senam 🤸‍♀️",
+      "Lari 🏃‍♀️",
+      "Berenang 🏊‍♀️",
+      "Olahraga 🏋️‍♀️",
+      "Minum TTD 💊"
+    ];
+
     let ttdTargetDay = parseInt(localStorage.getItem('ttd_target_day'));
     if (isNaN(ttdTargetDay)) ttdTargetDay = 2;
 
@@ -765,8 +799,42 @@
     const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
     window.onload = function() {
+      populatePresetDropdown();
       renderHomePage();
     };
+
+    function populatePresetDropdown() {
+      const select = document.getElementById('preset-title');
+      select.innerHTML = '<option value="">-- Pilih dari Daftar Presets --</option>';
+      activityPresets.forEach(preset => {
+        const option = document.createElement('option');
+        option.value = preset;
+        option.textContent = preset;
+        select.appendChild(option);
+      });
+    }
+
+    function applyPresetTitle() {
+      const selected = document.getElementById('preset-title').value;
+      if (selected) {
+        document.getElementById('title').value = selected;
+        if (selected.includes("TTD") || selected.includes("Tablet Tambah Darah")) {
+          document.getElementById('is-ttd').checked = true;
+        }
+      }
+    }
+
+    function toRoman(num) {
+      const lookup = { M: 1000, CM: 900, D: 500, CD: 400, C: 100, XC: 90, L: 50, XL: 40, X: 10, IX: 9, V: 5, IV: 4, I: 1 };
+      let roman = '';
+      for (let i in lookup) {
+        while (num >= lookup[i]) {
+          roman += i;
+          num -= lookup[i];
+        }
+      }
+      return roman;
+    }
 
     function switchPage(pageId) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -814,6 +882,7 @@
     function resetForm() {
       document.getElementById('reminder-id').value = '';
       document.getElementById('type').value = 'calendar';
+      document.getElementById('preset-title').value = '';
       document.getElementById('title').value = '';
       document.getElementById('time').value = '';
       document.getElementById('note').value = '';
@@ -828,7 +897,7 @@
     function saveReminder() {
       const id = document.getElementById('reminder-id').value;
       const type = document.getElementById('type').value;
-      const title = document.getElementById('title').value;
+      let title = document.getElementById('title').value.trim();
       const time = document.getElementById('time').value;
       const note = document.getElementById('note').value;
       const date = document.getElementById('date').value;
@@ -837,9 +906,19 @@
       const prayerName = document.getElementById('prayer-name').value;
       const isTTD = document.getElementById('is-ttd').checked;
 
-      if (!title || (type !== 'prayer' && !date)) { 
-        alert("Lengkapi Judul dan Tanggal ya! ✨"); 
+      if (type === 'prayer') {
+        title = `Sholat ${prayerName}`;
+      }
+
+      if (!title) { 
+        alert("Judul Kegiatan tidak boleh kosong ya! ✨"); 
         return; 
+      }
+
+      if (title && !activityPresets.includes(title) && type !== 'prayer') {
+        activityPresets.push(title);
+        localStorage.setItem('activity_presets', JSON.stringify(activityPresets));
+        populatePresetDropdown();
       }
 
       const existingItem = id ? reminders.find(r => r.id === id) : null;
@@ -848,12 +927,12 @@
       const itemData = { 
         id: id || Date.now().toString(), 
         type, 
-        title: type === 'prayer' ? `Sholat ${prayerName}` : title, 
+        title, 
         time: time || null, 
         note, 
         repeatMode: type !== 'prayer' ? repeatMode : 'daily', 
         customDays: repeatMode === 'custom' ? customDays : null, 
-        date: type !== 'prayer' ? date : null, 
+        date: (type !== 'prayer' && date) ? date : null, 
         prayerName: type === 'prayer' ? prayerName : null, 
         isTTD: isTTD,
         count: count
@@ -917,7 +996,7 @@
       toggleFormFields();
 
       if (item.type !== 'prayer') {
-        document.getElementById('date').value = item.date;
+        document.getElementById('date').value = item.date || '';
         document.getElementById('repeat-mode').value = item.repeatMode || 'once';
         toggleDateField();
         if (item.repeatMode === 'custom') {
@@ -1069,7 +1148,7 @@
 
         <div class="time-date-box">
           ${item.time ? `<span>⏰ <span class="highlight">${item.time}</span></span>` : '<span>⏰ <span style="opacity:0.6;">Tanpa Jam</span></span>'}
-          ${item.date ? `<span>📅 ${item.date}</span>` : ''}
+          ${item.date ? `<span>📅 ${item.date}</span>` : '<span>📅 <span style="opacity:0.6;">Tanpa Tanggal</span></span>'}
         </div>
 
         ${counterHTML}
@@ -1171,6 +1250,7 @@
 
         const eventsOnDay = reminders.filter(r => isEventOnDate(r, cellDateObj, dateStr));
         const hasTTD = eventsOnDay.some(r => r.isTTD);
+        const nonTTDEventsCount = eventsOnDay.filter(r => !r.isTTD).length;
         const weekIndex = Math.floor(i / 7);
 
         if (isOtherMonth) {
@@ -1198,10 +1278,15 @@
           }
         }
 
-        if (eventsOnDay.length > 0 && !hasTTD) {
+        if (nonTTDEventsCount === 1) {
           const dot = document.createElement('div');
           dot.className = 'event-dot';
           cell.appendChild(dot);
+        } else if (nonTTDEventsCount >= 2) {
+          const romanTag = document.createElement('div');
+          romanTag.className = 'event-roman';
+          romanTag.innerText = toRoman(nonTTDEventsCount);
+          cell.appendChild(romanTag);
         }
 
         cell.onclick = () => openDateModal(dateStr);
