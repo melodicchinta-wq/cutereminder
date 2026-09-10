@@ -641,7 +641,7 @@
 
           <div class="form-group">
             <label>Judul Catatan / Kegiatan (atau Tulis Baru)</label>
-            <input type="text" id="title" placeholder="Contoh: Senam Pagi 🤸‍♀️ / Minum TTD 💊">
+            <input type="text" id="title" placeholder="Contoh: Senam Pagi 🤸‍♀️ / Minum TTD 💊 / Eskul 🎨">
           </div>
 
           <div class="form-group" id="ttd-checkbox-group" style="display:flex; align-items:center; gap:10px; background:var(--card-bg-2); padding:12px; border-radius:14px; border:1px dashed var(--border);">
@@ -655,7 +655,8 @@
               <select id="repeat-mode" onchange="toggleDateField()">
                 <option value="once">1x Saja (Tanggal Opsional)</option>
                 <option value="daily">Setiap Hari</option>
-                <option value="weekly">Setiap Minggu</option>
+                <option value="weekly_days">Hari Tertentu (Contoh: Senin & Kamis) 🗓️</option>
+                <option value="weekly">Setiap Minggu (Hari Sama)</option>
                 <option value="monthly">Setiap Bulan</option>
                 <option value="yearly">Setiap Tahun 🎂</option>
                 <option value="custom">Kustom (Per-beberapa Hari)</option>
@@ -665,6 +666,19 @@
             <div class="form-group" id="date-group">
               <label>Tanggal Mulai / Target <span style="font-size:11px; color:var(--pink-cute);">(Opsional untuk 1x Saja)</span></label>
               <input type="date" id="date">
+            </div>
+
+            <div class="form-group hidden" id="custom-weekdays-group">
+              <label>Pilih Hari Rutin:</label>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: var(--card-bg-2); padding: 12px; border-radius: 14px; border: 1px solid var(--border);">
+                <label style="margin:0; font-size:12px; cursor:pointer;"><input type="checkbox" class="day-checkbox" value="1" style="width:auto;"> Sen</label>
+                <label style="margin:0; font-size:12px; cursor:pointer;"><input type="checkbox" class="day-checkbox" value="2" style="width:auto;"> Sel</label>
+                <label style="margin:0; font-size:12px; cursor:pointer;"><input type="checkbox" class="day-checkbox" value="3" style="width:auto;"> Rab</label>
+                <label style="margin:0; font-size:12px; cursor:pointer;"><input type="checkbox" class="day-checkbox" value="4" style="width:auto;"> Kam</label>
+                <label style="margin:0; font-size:12px; cursor:pointer;"><input type="checkbox" class="day-checkbox" value="5" style="width:auto;"> Jum</label>
+                <label style="margin:0; font-size:12px; cursor:pointer;"><input type="checkbox" class="day-checkbox" value="6" style="width:auto;"> Sab</label>
+                <label style="margin:0; font-size:12px; cursor:pointer;"><input type="checkbox" class="day-checkbox" value="0" style="width:auto;"> Min</label>
+              </div>
             </div>
 
             <div class="form-group hidden" id="custom-days-group">
@@ -784,7 +798,8 @@
       "Lari 🏃‍♀️",
       "Berenang 🏊‍♀️",
       "Olahraga 🏋️‍♀️",
-      "Minum TTD 💊"
+      "Minum TTD 💊",
+      "Eskul 🎨"
     ];
 
     let ttdTargetDay = parseInt(localStorage.getItem('ttd_target_day'));
@@ -877,6 +892,7 @@
     function toggleDateField() {
       const mode = document.getElementById('repeat-mode').value;
       document.getElementById('custom-days-group').classList.toggle('hidden', mode !== 'custom');
+      document.getElementById('custom-weekdays-group').classList.toggle('hidden', mode !== 'weekly_days');
     }
 
     function resetForm() {
@@ -890,6 +906,7 @@
       document.getElementById('repeat-mode').value = 'once';
       document.getElementById('custom-days').value = '';
       document.getElementById('is-ttd').checked = false;
+      document.querySelectorAll('.day-checkbox').forEach(cb => cb.checked = false);
       toggleFormFields();
       toggleDateField();
     }
@@ -906,6 +923,8 @@
       const prayerName = document.getElementById('prayer-name').value;
       const isTTD = document.getElementById('is-ttd').checked;
 
+      const selectedDays = Array.from(document.querySelectorAll('.day-checkbox:checked')).map(cb => parseInt(cb.value));
+
       if (type === 'prayer') {
         title = `Sholat ${prayerName}`;
       }
@@ -913,6 +932,11 @@
       if (!title) { 
         alert("Judul Kegiatan tidak boleh kosong ya! ✨"); 
         return; 
+      }
+
+      if (repeatMode === 'weekly_days' && selectedDays.length === 0) {
+        alert("Pilih minimal satu hari rutin ya! 🗓️");
+        return;
       }
 
       if (title && !activityPresets.includes(title) && type !== 'prayer') {
@@ -932,6 +956,7 @@
         note, 
         repeatMode: type !== 'prayer' ? repeatMode : 'daily', 
         customDays: repeatMode === 'custom' ? customDays : null, 
+        selectedDays: repeatMode === 'weekly_days' ? selectedDays : [],
         date: (type !== 'prayer' && date) ? date : null, 
         prayerName: type === 'prayer' ? prayerName : null, 
         isTTD: isTTD,
@@ -1002,6 +1027,11 @@
         if (item.repeatMode === 'custom') {
           document.getElementById('custom-days').value = item.customDays || '';
         }
+        if (item.repeatMode === 'weekly_days' && item.selectedDays) {
+          document.querySelectorAll('.day-checkbox').forEach(cb => {
+            cb.checked = item.selectedDays.includes(parseInt(cb.value));
+          });
+        }
       } else {
         document.getElementById('prayer-name').value = item.prayerName || 'Subuh';
       }
@@ -1012,20 +1042,38 @@
 
     function isEventOnDate(item, targetDateObj, targetDateStr) {
       if (item.type === 'prayer') return true;
-      if (!item.date) return false;
 
-      const origDate = new Date(item.date + 'T00:00:00');
       const targetDate = new Date(targetDateStr + 'T00:00:00');
-      
-      if (targetDate < origDate) return false;
+
+      if (item.date) {
+        const origDate = new Date(item.date + 'T00:00:00');
+        if (targetDate < origDate) return false;
+      }
 
       const mode = item.repeatMode || 'once';
       if (mode === 'once') return item.date === targetDateStr;
       if (mode === 'daily') return true;
-      if (mode === 'weekly') return targetDate.getDay() === origDate.getDay();
-      if (mode === 'monthly') return targetDate.getDate() === origDate.getDate();
-      if (mode === 'yearly') return targetDate.getDate() === origDate.getDate() && targetDate.getMonth() === origDate.getMonth();
+      if (mode === 'weekly') {
+        if (!item.date) return false;
+        const origDate = new Date(item.date + 'T00:00:00');
+        return targetDate.getDay() === origDate.getDay();
+      }
+      if (mode === 'weekly_days') {
+        return item.selectedDays && item.selectedDays.includes(targetDate.getDay());
+      }
+      if (mode === 'monthly') {
+        if (!item.date) return false;
+        const origDate = new Date(item.date + 'T00:00:00');
+        return targetDate.getDate() === origDate.getDate();
+      }
+      if (mode === 'yearly') {
+        if (!item.date) return false;
+        const origDate = new Date(item.date + 'T00:00:00');
+        return targetDate.getDate() === origDate.getDate() && targetDate.getMonth() === origDate.getMonth();
+      }
       if (mode === 'custom') {
+        if (!item.date) return false;
+        const origDate = new Date(item.date + 'T00:00:00');
         const customVal = parseInt(item.customDays) || 1;
         const diffTime = targetDate - origDate;
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -1069,6 +1117,7 @@
       const repeatText = { 
         once: '1x Saja', 
         daily: 'Setiap Hari', 
+        weekly_days: 'Hari Kustom',
         weekly: 'Setiap Minggu', 
         monthly: 'Setiap Bulan', 
         yearly: 'Setiap Tahun', 
@@ -1088,6 +1137,11 @@
 
       let repeatLabel = item.type !== 'prayer' ? repeatText[item.repeatMode] || '1x Saja' : 'Setiap Hari';
 
+      if (item.repeatMode === 'weekly_days' && item.selectedDays) {
+        const selectedDayLabels = item.selectedDays.map(d => dayNames[d].substring(0, 3)).join(', ');
+        repeatLabel = `${selectedDayLabels}`;
+      }
+
       card.innerHTML = `
         <div class="card-upcoming-header">
           <div class="card-upcoming-title">${item.title} ${item.type === 'log' ? `(${item.count || 0}x)` : ''}</div>
@@ -1105,6 +1159,7 @@
       const repeatText = { 
         once: '1x Saja', 
         daily: 'Setiap Hari', 
+        weekly_days: 'Hari Kustom',
         weekly: 'Setiap Minggu', 
         monthly: 'Setiap Bulan', 
         yearly: 'Setiap Tahun', 
@@ -1123,6 +1178,11 @@
       }
 
       let repeatLabel = item.type !== 'prayer' ? repeatText[item.repeatMode] || '1x Saja' : 'Setiap Hari';
+
+      if (item.repeatMode === 'weekly_days' && item.selectedDays) {
+        const selectedDayLabels = item.selectedDays.map(d => dayNames[d].substring(0, 3)).join(', ');
+        repeatLabel = `Setiap ${selectedDayLabels}`;
+      }
 
       let counterHTML = '';
       if (item.type === 'log') {
