@@ -27,7 +27,7 @@
 
     * {
       box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
@@ -813,6 +813,14 @@
     const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
+    // Helper untuk format tanggal lokal YYYY-MM-DD
+    function getLocalDateString(dateObj = new Date()) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     window.onload = function() {
       populatePresetDropdown();
       renderHomePage();
@@ -1083,8 +1091,8 @@
     }
 
     function renderHomePage() {
+      const todayStr = getLocalDateString();
       const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
       const statusContainer = document.getElementById('home-ttd-status');
 
       const todayTTD = reminders.some(r => r.isTTD && isEventOnDate(r, today, todayStr));
@@ -1261,7 +1269,7 @@
       const firstDayIndex = new Date(viewYear, viewMonth, 1).getDay();
       const prevMonthLastDate = new Date(viewYear, viewMonth, 0).getDate();
       const totalDaysCurrentMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       const todayObj = new Date();
 
       let weekHasTTD = {};
@@ -1301,10 +1309,7 @@
           cellDateObj = new Date(viewYear, viewMonth, currentDay);
         }
 
-        const year = cellDateObj.getFullYear();
-        const month = String(cellDateObj.getMonth() + 1).padStart(2, '0');
-        const dateNum = String(cellDateObj.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${dateNum}`;
+        const dateStr = getLocalDateString(cellDateObj);
 
         cell.innerText = cellDateObj.getDate();
 
@@ -1370,9 +1375,7 @@
         const dateObj = new Date(viewYear, viewMonth, day);
         if (dateObj > today) break;
 
-        const mStr = String(viewMonth + 1).padStart(2, '0');
-        const dStr = String(day).padStart(2, '0');
-        const dateStr = `${viewYear}-${mStr}-${dStr}`;
+        const dateStr = getLocalDateString(dateObj);
 
         const weekIndex = Math.floor((day + firstDay - 1) / 7);
         if (!weeklyTTDCount[weekIndex]) weeklyTTDCount[weekIndex] = 0;
