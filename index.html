@@ -829,6 +829,12 @@
       renderHomePage();
     };
 
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+
+    
     function populatePresetDropdown() {
       const select = document.getElementById('preset-title');
       select.innerHTML = '<option value="">-- Pilih dari Daftar Presets --</option>';
